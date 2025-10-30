@@ -1,3 +1,4 @@
+
 // Initialize
 let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 const form = document.getElementById('expense-form');
@@ -6,21 +7,30 @@ const totalDisplay = document.getElementById('total');
 const ctx = document.getElementById('expenseChart').getContext('2d');
 let chart;
 
+
 // Add Expense
 form.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const description = document.getElementById('description').value.trim();
-  const amount = parseFloat(document.getElementById('amount').value);
+  const amountInput = document.getElementById('amount').value;
+  const amount = parseFloat(amountInput);
   const category = document.getElementById('category').value;
 
-  if (!description || !amount || !category) {
+  // Input Validation
+  if (!description || !amountInput || !category) {
     alert("Please fill all fields before adding an expense.");
     return;
   }
 
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid positive number for the amount.");
+    return;
+  }
+
+  // Unique ID using timestamp + random component
   const expense = {
-    id: Date.now(),
+    id: Date.now().toString() + Math.floor(Math.random() * 1000).toString(),
     description,
     amount,
     category,
@@ -34,7 +44,7 @@ form.addEventListener('submit', (e) => {
   // Update UI
   renderTable();
   updateChart();
-  form.reset(); // ✅ Clears form for next entry
+  form.reset(); // Clears form for next entry
 });
 
 // Render Expense Table
@@ -61,11 +71,18 @@ function renderTable() {
   updateTotal();
 }
 
-// Delete Expense (using event delegation)
+
+// Delete Expense (Event Delegation)
 tbody.addEventListener('click', (e) => {
   if (e.target.classList.contains('delete-btn')) {
     const row = e.target.closest('tr');
-    const id = Number(row.dataset.id);
+    const id = row.dataset.id;
+
+    //Confirmation before delete
+    const confirmDelete = confirm("Are you sure you want to delete this expense?");
+    if (!confirmDelete) return;
+
+    // Proceed with deletion
     expenses = expenses.filter((exp) => exp.id !== id);
     localStorage.setItem('expenses', JSON.stringify(expenses));
     renderTable();
@@ -110,5 +127,6 @@ function updateChart() {
 }
 
 // Initialize app when page loads
+
 renderTable();
 updateChart();
